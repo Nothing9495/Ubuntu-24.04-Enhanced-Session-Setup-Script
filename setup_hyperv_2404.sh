@@ -68,9 +68,9 @@ if ! grep -q "FuseMountName=shared-drives" "$SESMAN_FILE"; then
     sed -i -e 's/FuseMountName=thinclient_drives/FuseMountName=shared-drives/g' "$SESMAN_FILE"
 fi
 
-if ! grep -q "param=-CompareFB" "$SESMAN_FILE"; then
+if ! grep -q "^param=-CompareFB$" "$SESMAN_FILE"; then
     echo "  -> Configuring TigerVNC backend parameters..."
-    sed -z -i -e 's/\[Xvnc\].*\nparam=96\n/\[Xvnc\]\nparam=-CompareFB\nparam=1\nparam=-ZlibLevel\nparam=0\nparam=-geometry\nparam=1920x1080\n/gi' "$SESMAN_FILE"
+    perl -0777 -i -pe 's/(\[Xvnc\][^\[]*?)(\n+)(?=\[|\z)/$1\nparam=-geometry\nparam=1920x1080\nparam=-CompareFB\nparam=1\nparam=-ZlibLevel\nparam=0\n$2/g' "$SESMAN_FILE"
 fi
 
 if ! grep -q "UserWindowManager=startubuntu" "$SESMAN_FILE"; then
