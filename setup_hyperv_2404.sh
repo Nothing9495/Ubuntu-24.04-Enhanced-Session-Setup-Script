@@ -32,6 +32,24 @@ else
     echo "  -> All packages already installed."
 fi
 
+# Abort if the Xvnc backend is not actually available after installation.
+if ! command -v Xvnc >/dev/null 2>&1; then
+    cat >&2 <<'EOF'
+ERROR: Xvnc was not found.
+       Aborting now, before any xrdp configuration is modified.
+
+See the apt output above for the actual cause. If the 'universe' repository 
+is disabled, enable it and install the backend:
+
+    sudo add-apt-repository universe
+    sudo apt update
+    sudo apt install -y tigervnc-standalone-server
+
+Then re-run this script.
+EOF
+    exit 1
+fi
+
 echo "[2/9] Configuring xrdp.ini..."
 INI_FILE="/etc/xrdp/xrdp.ini"
 
