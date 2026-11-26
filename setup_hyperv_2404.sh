@@ -19,7 +19,7 @@ REQUIRED_PKGS="xrdp tigervnc-standalone-server tigervnc-xorg-extension linux-too
 NEEDS_INSTALL=false
 
 for pkg in $REQUIRED_PKGS; do
-    if ! dpkg -l | grep -q "$pkg"; then
+    if [ "$(dpkg-query -W -f='${Status}' "$pkg" 2>/dev/null)" != "install ok installed" ]; then
         echo "  -> Missing package: $pkg"
         NEEDS_INSTALL=true
     fi
@@ -73,9 +73,9 @@ if ! grep -q "bitmap_compression=false" "$INI_FILE"; then
     sed -i -e 's/bitmap_compression=true/bitmap_compression=false/g' "$INI_FILE"
 fi
 
-if grep -q "\[Xorg\]" "$INI_FILE"; then
+if grep -q "^\[Xorg\]" "$INI_FILE"; then
     echo "  -> Removing [Xorg] block to enforce TigerVNC..."
-    sed -z -i -e 's/\[Xorg\].*\ncode=20\n\n\[/\[/gi' "$INI_FILE"
+    perl -0777 -i -pe 's/\[Xorg\][^\[]*//g' "$INI_FILE"
 fi
 
 echo "[3/9] Configuring sesman.ini..."
@@ -165,8 +165,8 @@ fi
 
 echo "[9/9] Restarting services..."
 systemctl daemon-reload
-systemctl enable xrdp
-systemctl restart xrdp
+systemctl enable xrdp xrdp-sesman
+systemctl restart xrdp xrdp-sesman
 
 echo "--- Configuration Complete ---"
 echo "If this is a fresh install or kernel modules were changed, please POWER OFF the VM completely and start it again."
